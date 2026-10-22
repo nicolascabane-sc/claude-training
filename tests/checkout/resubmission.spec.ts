@@ -8,7 +8,7 @@ test.describe('State transition: resubmission after finish (risk F2)', () => {
   // second order is created.
   test.fixme('TC-F2-01: browser Back after finish should not allow a second order', async ({ page, checkoutStepTwoPage }) => {
     await beginCheckoutWithItem(page);
-    await completeCheckout(page, 'Mary', 'Smith', '12345');
+    await completeCheckout(page);
 
     await page.goBack();
     await checkoutStepTwoPage.finish();
@@ -17,13 +17,13 @@ test.describe('State transition: resubmission after finish (risk F2)', () => {
 
   test('TC-F2-02: after a completed order, a second order with a new item completes normally', async ({ page, inventoryPage, checkoutCompletePage }) => {
     await beginCheckoutWithItem(page);
-    await completeCheckout(page, 'Mary', 'Smith', '12345');
+    await completeCheckout(page);
     await checkoutCompletePage.backToProducts();
 
     await inventoryPage.addToCart('sauce-labs-bike-light');
     await openCart(page);
     await startCheckout(page);
 
-    await completeCheckout(page, 'Mary', 'Smith', '12345');
+    await completeCheckout(page);
   });
 });

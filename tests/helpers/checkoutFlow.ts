@@ -2,9 +2,10 @@ import { Page, expect } from '@playwright/test';
 import { LoginPage } from '../../pages/LoginPage';
 import { InventoryPage } from '../../pages/InventoryPage';
 import { CartPage } from '../../pages/CartPage';
-import { CheckoutStepOnePage } from '../../pages/CheckoutStepOnePage';
+import { CheckoutStepOnePage, CustomerInfo } from '../../pages/CheckoutStepOnePage';
 import { CheckoutStepTwoPage } from '../../pages/CheckoutStepTwoPage';
 import { CheckoutCompletePage } from '../../pages/CheckoutCompletePage';
+import { validCustomer } from '../../test-data/checkout';
 
 export const STANDARD_USER = { username: 'standard_user', password: 'secret_sauce' };
 
@@ -40,12 +41,13 @@ export async function beginCheckoutWithItem(page: Page, productSlug = 'sauce-lab
 }
 
 /**
- * Fills step one, continues to the overview, finishes, and asserts the
- * confirmation page is shown with the expected header.
+ * Fills step one with the customer's details (validCustomer by default),
+ * continues to the overview, finishes, and asserts the confirmation page
+ * is shown with the expected header.
  */
-export async function completeCheckout(page: Page, firstName: string, lastName: string, zip: string) {
+export async function completeCheckout(page: Page, customer: CustomerInfo = validCustomer) {
   const stepOne = new CheckoutStepOnePage(page);
-  await stepOne.fillForm(firstName, lastName, zip);
+  await stepOne.fillForm(customer);
   await stepOne.continue();
   await expect(page).toHaveURL(/checkout-step-two\.html/);
 
