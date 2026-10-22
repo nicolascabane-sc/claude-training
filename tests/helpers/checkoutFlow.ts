@@ -53,3 +53,11 @@ export async function completeCheckout(page: Page, firstName: string, lastName: 
   await expect(page).toHaveURL(/checkout-complete\.html/);
   await expect(new CheckoutCompletePage(page).completeHeader).toHaveText('Thank you for your order!');
 }
+
+/** Continues from step one and asserts checkout is blocked with a validation error. */
+export async function continueExpectingError(page: Page) {
+  const stepOne = new CheckoutStepOnePage(page);
+  await stepOne.continue();
+  await expect(page).toHaveURL(/checkout-step-one\.html/);
+  await expect(stepOne.errorMessage).toBeVisible();
+}

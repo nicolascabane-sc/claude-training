@@ -6,11 +6,11 @@ export class InventoryPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.cartLink = page.locator('[data-test="shopping-cart-link"]');
+    this.cartLink = page.getByTestId('shopping-cart-link');
   }
 
-  addToCart(productSlug: string) {
-    return this.page.locator(`[data-test="add-to-cart-${productSlug}"]`).click();
+  async addToCart(productSlug: string) {
+    await this.page.getByTestId(`add-to-cart-${productSlug}`).click();
   }
 
   async openCart() {

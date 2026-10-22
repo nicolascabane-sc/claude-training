@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { CheckoutStepOnePage } from '../../pages/CheckoutStepOnePage';
 import { CheckoutStepTwoPage } from '../../pages/CheckoutStepTwoPage';
-import { beginCheckoutWithItem, loginAsStandardUser, openCart, startCheckout } from '../helpers/checkoutFlow';
+import { beginCheckoutWithItem, continueExpectingError, loginAsStandardUser, openCart, startCheckout } from '../helpers/checkoutFlow';
 
 test.describe('Decision table: checkout with empty or filled cart (risk C1)', () => {
   test('TC-C1-01: an empty cart should not allow an order to be placed', async ({ page }) => {
@@ -24,20 +24,12 @@ test.describe('Decision table: checkout with empty or filled cart (risk C1)', ()
     await openCart(page);
     await startCheckout(page);
 
-    const stepOne = new CheckoutStepOnePage(page);
-    await stepOne.continue();
-
-    await expect(page).toHaveURL(/checkout-step-one\.html/);
-    await expect(stepOne.errorMessage).toBeVisible();
+    await continueExpectingError(page);
   });
 
   test('TC-C1-03: a filled cart with an empty form shows required-field validation', async ({ page }) => {
     await beginCheckoutWithItem(page);
 
-    const stepOne = new CheckoutStepOnePage(page);
-    await stepOne.continue();
-
-    await expect(page).toHaveURL(/checkout-step-one\.html/);
-    await expect(stepOne.errorMessage).toBeVisible();
+    await continueExpectingError(page);
   });
 });
