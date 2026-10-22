@@ -1,4 +1,8 @@
+import { existsSync } from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
+
+// Load credentials from .env when it exists. CI sets them as environment variables instead.
+if (existsSync('.env')) process.loadEnvFile();
 
 // See https://playwright.dev/docs/test-configuration.
 export default defineConfig({
