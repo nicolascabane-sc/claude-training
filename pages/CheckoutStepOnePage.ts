@@ -1,5 +1,12 @@
 import { Page, Locator } from '@playwright/test';
 
+/** The details entered on step one of checkout. */
+export type CustomerInfo = {
+  firstName: string;
+  lastName: string;
+  zip: string;
+};
+
 export class CheckoutStepOnePage {
   readonly page: Page;
   readonly firstNameInput: Locator;
@@ -17,10 +24,10 @@ export class CheckoutStepOnePage {
     this.errorMessage = page.getByTestId('error');
   }
 
-  async fillForm(firstName: string, lastName: string, postalCode: string) {
+  async fillForm({ firstName, lastName, zip }: CustomerInfo) {
     await this.firstNameInput.fill(firstName);
     await this.lastNameInput.fill(lastName);
-    await this.postalCodeInput.fill(postalCode);
+    await this.postalCodeInput.fill(zip);
   }
 
   async continue() {

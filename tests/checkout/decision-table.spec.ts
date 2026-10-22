@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import { validCustomer } from '../../test-data/checkout';
 import { beginCheckoutWithItem, continueExpectingError, loginAsStandardUser, openCart, startCheckout } from '../helpers/checkoutFlow';
 
 test.describe('Decision table: checkout with empty or filled cart (risk C1)', () => {
@@ -9,7 +10,7 @@ test.describe('Decision table: checkout with empty or filled cart (risk C1)', ()
     await openCart(page);
     await startCheckout(page);
 
-    await checkoutStepOnePage.fillForm('Mary', 'Smith', '12345');
+    await checkoutStepOnePage.fillForm(validCustomer);
     await checkoutStepOnePage.continue();
     await checkoutStepTwoPage.finish();
 

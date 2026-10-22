@@ -9,7 +9,7 @@ test.describe('Data-driven: name and zip partitions (risks S2, S5)', () => {
   for (const c of checkoutCases) {
     test(`${c.id}: ${c.description}`, async ({ page }) => {
       await beginCheckoutWithItem(page);
-      await completeCheckout(page, c.firstName, c.lastName, c.zip);
+      await completeCheckout(page, c);
     });
   }
 });
