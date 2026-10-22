@@ -28,7 +28,8 @@ When upgrading `@playwright/test`, change the image tag in `.github/workflows/pl
 - `tests/fixtures.ts`: extends Playwright's `test` so specs get page objects as fixtures (`{ checkoutStepOnePage }`); import `test` and `expect` from here
 - `tests/helpers/checkoutFlow.ts`: shared login, cart and checkout steps
 - `tests/checkout/`: specs, grouped by risk and test design technique
-- `test-data/checkout.ts`: data table for `data-driven.spec.ts` (S2, S5); each row is one test
+- `test-data/checkout.ts`: `validCustomer` and the data table for `data-driven.spec.ts` (S2, S5); each row is one test
+- `test-data/users.ts`: login credentials
 
 ## Coverage by risk
 
