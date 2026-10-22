@@ -6,7 +6,7 @@ export class CheckoutStepTwoPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.finishButton = page.locator('[data-test="finish"]');
+    this.finishButton = page.getByTestId('finish');
   }
 
   async finish() {

@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { CheckoutStepOnePage } from '../../pages/CheckoutStepOnePage';
 import { checkoutCases } from '../../test-data/checkout';
-import { beginCheckoutWithItem, completeCheckout } from '../helpers/checkoutFlow';
+import { beginCheckoutWithItem, completeCheckout, continueExpectingError } from '../helpers/checkoutFlow';
 
 // Data-driven test (risks S2 and S5). One test per row of test-data/checkout.ts,
 // so each case has its own result and its own name in the report.
@@ -15,11 +15,8 @@ test.describe('Data-driven: name and zip partitions (risks S2, S5)', () => {
       if (c.expected === 'accepted') {
         await completeCheckout(page, c.firstName, c.lastName, c.zip);
       } else {
-        const stepOne = new CheckoutStepOnePage(page);
-        await stepOne.fillForm(c.firstName, c.lastName, c.zip);
-        await stepOne.continue();
-        await expect(page).toHaveURL(/checkout-step-one\.html/);
-        await expect(stepOne.errorMessage).toBeVisible();
+        await new CheckoutStepOnePage(page).fillForm(c.firstName, c.lastName, c.zip);
+        await continueExpectingError(page);
       }
     });
   }

@@ -7,8 +7,8 @@ export class CheckoutCompletePage {
 
   constructor(page: Page) {
     this.page = page;
-    this.completeHeader = page.locator('[data-test="complete-header"]');
-    this.backToProductsButton = page.locator('[data-test="back-to-products"]');
+    this.completeHeader = page.getByTestId('complete-header');
+    this.backToProductsButton = page.getByTestId('back-to-products');
   }
 
   async backToProducts() {

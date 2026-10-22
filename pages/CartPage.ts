@@ -6,7 +6,7 @@ export class CartPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.checkoutButton = page.locator('[data-test="checkout"]');
+    this.checkoutButton = page.getByTestId('checkout');
   }
 
   async checkout() {
