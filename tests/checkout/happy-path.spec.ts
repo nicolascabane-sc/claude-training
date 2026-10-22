@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { InventoryPage } from '../../pages/InventoryPage';
 import { CheckoutCompletePage } from '../../pages/CheckoutCompletePage';
-import { beginCheckoutWithItem, completeCheckout, loginAsStandardUser, openCart, startCheckout } from '../helpers/checkoutFlow';
+import { completeCheckout, loginAsStandardUser, openCart, startCheckout } from '../helpers/checkoutFlow';
 
 test.describe('Checkout: happy path (regression anchor)', () => {
   test('TC-C1-04: a filled cart with valid details completes the order', async ({ page }) => {
