@@ -6,14 +6,13 @@ import { CheckoutStepOnePage, CustomerInfo } from '../../pages/CheckoutStepOnePa
 import { CheckoutStepTwoPage } from '../../pages/CheckoutStepTwoPage';
 import { CheckoutCompletePage } from '../../pages/CheckoutCompletePage';
 import { validCustomer } from '../../test-data/checkout';
-
-export const STANDARD_USER = { username: 'standard_user', password: 'secret_sauce' };
+import { standardUser } from '../../test-data/users';
 
 /** Logs in as standard_user and asserts the inventory page is shown. */
 export async function loginAsStandardUser(page: Page) {
   const loginPage = new LoginPage(page);
   await loginPage.goto();
-  await loginPage.login(STANDARD_USER.username, STANDARD_USER.password);
+  await loginPage.login(standardUser.username, standardUser.password);
   await expect(page).toHaveURL(/inventory\.html/);
 }
 
@@ -27,6 +26,13 @@ export async function openCart(page: Page) {
 export async function startCheckout(page: Page) {
   await new CartPage(page).checkout();
   await expect(page).toHaveURL(/checkout-step-one\.html/);
+}
+
+/** Logs in, opens the empty cart and starts checkout. */
+export async function beginCheckoutWithEmptyCart(page: Page) {
+  await loginAsStandardUser(page);
+  await openCart(page);
+  await startCheckout(page);
 }
 
 /**
