@@ -4,22 +4,25 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+# A new push to the same PR cancels the run still in progress.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
-    timeout-minutes: 60
+    timeout-minutes: 20
     runs-on: ubuntu-latest
+    # Browsers and their system dependencies are preinstalled in this image.
+    # Keep the tag in sync with @playwright/test in package-lock.json.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
+    - uses: actions/checkout@v7
     - name: Install dependencies
       run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps chromium
     - name: Run Playwright tests
       run: npx playwright test
-    - uses: actions/upload-artifact@v4.6.2
+    - uses: actions/upload-artifact@v7
       if: ${{ !cancelled() }}
       with:
         name: playwright-report

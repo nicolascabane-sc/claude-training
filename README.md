@@ -17,6 +17,11 @@ npm run test:headed   # run with a visible browser
 npm run report        # open the last HTML report
 ```
 
+## CI
+
+GitHub Actions runs the suite in the official Playwright Docker image, which has the browsers preinstalled.
+When upgrading `@playwright/test`, change the image tag in `.github/workflows/playwright.yml` to the same version.
+
 ## Layout
 
 - `pages/`: Page Objects, one per screen, using `data-test` locators
