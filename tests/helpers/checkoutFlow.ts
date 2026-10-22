@@ -8,7 +8,7 @@ import { CheckoutCompletePage } from '../../pages/CheckoutCompletePage';
 import { validCustomer } from '../../test-data/checkout';
 import { standardUser } from '../../test-data/users';
 
-/** Logs in as standard_user and asserts the inventory page is shown. */
+/** Logs in as the standard user and asserts the inventory page is shown. */
 export async function loginAsStandardUser(page: Page) {
   const loginPage = new LoginPage(page);
   await loginPage.goto();
