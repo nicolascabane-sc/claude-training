@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { CheckoutStepOnePage } from '../../pages/CheckoutStepOnePage';
 import { CheckoutStepTwoPage } from '../../pages/CheckoutStepTwoPage';
-import { InventoryPage } from '../../pages/InventoryPage';
 import { beginCheckoutWithItem, loginAsStandardUser, openCart, startCheckout } from '../helpers/checkoutFlow';
 
 test.describe('Decision table: checkout with empty or filled cart (risk C1)', () => {
