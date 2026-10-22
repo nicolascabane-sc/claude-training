@@ -22,15 +22,15 @@ npm run report        # open the last HTML report
 - `pages/`: Page Objects, one per screen, using `data-test` locators
 - `tests/helpers/checkoutFlow.ts`: shared login, cart and checkout steps
 - `tests/checkout/`: specs, grouped by risk and test design technique
-- `test-data/checkout.ts`: data tables for the data-driven specs (S2, S5)
+- `test-data/checkout.ts`: data table for `data-driven.spec.ts` (S2, S5); each row is one test
 
 ## Coverage by risk
 
 | Risk | Spec | Technique |
 |---|---|---|
 | C1: order with an empty cart | `happy-path.spec.ts`, `decision-table.spec.ts` | Regression anchor, decision table |
-| S2: zip code validation | `zip-code.spec.ts` | Equivalence partitioning, exploratory boundaries |
-| S5: name field validation | `name-fields.spec.ts` | Equivalence partitioning |
+| S2: zip code validation | `data-driven.spec.ts` | Equivalence partitioning, exploratory boundaries |
+| S5: name field validation | `data-driven.spec.ts` | Equivalence partitioning |
 | F2: resubmission after finish | `resubmission.spec.ts` | State transition |
 
 Known defects are marked with `test.fail`: the test passes while the defect still exists.
