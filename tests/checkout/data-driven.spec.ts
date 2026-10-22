@@ -1,5 +1,4 @@
-import { test } from '@playwright/test';
-import { CheckoutStepOnePage } from '../../pages/CheckoutStepOnePage';
+import { test } from '../fixtures';
 import { checkoutCases } from '../../test-data/checkout';
 import { beginCheckoutWithItem, completeCheckout, continueExpectingError } from '../helpers/checkoutFlow';
 
@@ -9,13 +8,13 @@ import { beginCheckoutWithItem, completeCheckout, continueExpectingError } from 
 // 'rejected' rows must stay on step one with a validation error.
 test.describe('Data-driven: name and zip partitions (risks S2, S5)', () => {
   for (const c of checkoutCases) {
-    test(`${c.id}: ${c.description} (expected: ${c.expected})`, async ({ page }) => {
+    test(`${c.id}: ${c.description} (expected: ${c.expected})`, async ({ page, checkoutStepOnePage }) => {
       await beginCheckoutWithItem(page);
 
       if (c.expected === 'accepted') {
         await completeCheckout(page, c.firstName, c.lastName, c.zip);
       } else {
-        await new CheckoutStepOnePage(page).fillForm(c.firstName, c.lastName, c.zip);
+        await checkoutStepOnePage.fillForm(c.firstName, c.lastName, c.zip);
         await continueExpectingError(page);
       }
     });
