@@ -1,18 +1,21 @@
-import { test } from '../fixtures';
+import { test, expect } from '../fixtures';
 import { beginCheckoutWithItem, completeCheckout, openCart, startCheckout } from '../helpers/checkoutFlow';
 
 test.describe('State transition: resubmission after finish (risk F2)', () => {
-  // Pending the manual reproduction of TC-F2-01. The assertion depends on
-  // what the manual run shows. If a second order is confirmed, change this to
-  // test(...) with test.fail(true, 'Known defect F2: ...') and assert that no
-  // second order is created.
-  test.fixme('TC-F2-01: browser Back after finish should not allow a second order', async ({ page, checkoutStepTwoPage }) => {
+  // Confirmed manually: after a completed order, browser Back returns to the
+  // overview and Finish confirms a second order. The cart is already empty by
+  // then, so it is also an empty order (compare TC-C1-01).
+  test('TC-F2-01: browser Back after finish should not allow a second order', async ({ page, checkoutStepTwoPage }) => {
+    test.fail(true, 'Known defect F2: browser Back after finish allows a second order');
+
     await beginCheckoutWithItem(page);
     await completeCheckout(page);
 
     await page.goBack();
+    await expect(page).toHaveURL(/checkout-step-two\.html/);
     await checkoutStepTwoPage.finish();
-    // TODO: assertion pending manual result for TC-F2-01.
+
+    await expect(page).not.toHaveURL(/checkout-complete\.html/);
   });
 
   test('TC-F2-02: after a completed order, a second order with a new item completes normally', async ({ page, inventoryPage, checkoutCompletePage }) => {
