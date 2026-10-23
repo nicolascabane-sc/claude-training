@@ -42,6 +42,6 @@ When upgrading `@playwright/test`, change the image tag in `.github/workflows/pl
 | S5: name field validation | `data-driven.spec.ts` | Equivalence partitioning |
 | F2: resubmission after finish | `resubmission.spec.ts` | State transition |
 
-Known defects are marked with `test.fail`: the test passes while the defect still exists.
+Known defects are marked with `test.fail` (currently TC-C1-01 and TC-F2-01): the test passes while the defect still exists.
 Pending cases are marked with `test.fixme`.
 Characterization tests record current behaviour where no rule has been specified.
