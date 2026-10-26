@@ -10,22 +10,22 @@ export const validCustomer: CustomerInfo = { firstName: 'Mary', lastName: 'Smith
 
 // Each case starts from validCustomer and overrides only the field under test.
 export type CheckoutCase = CustomerInfo & {
-  id: string;
-  description: string;
+  name: string;
 };
 
 export const checkoutCases: CheckoutCase[] = [
-  // Risk S5: name fields (equivalence partitioning).
-  { id: 'TC-S5-01', description: 'plain letters in first and last name are accepted', ...validCustomer },
-  { id: 'TC-S5-02', description: 'accented letters in first and last name are accepted', ...validCustomer, firstName: 'José', lastName: 'Ángel' },
-  { id: 'TC-S5-03', description: 'special characters in first and last name are accepted (characterization)', ...validCustomer, firstName: 'Mary#', lastName: 'Smith$' },
+  // Name fields (equivalence partitioning).
+  { name: 'plain names', ...validCustomer },
+  { name: 'accented names', ...validCustomer, firstName: 'José', lastName: 'Ángel' },
+  { name: 'names with special characters', ...validCustomer, firstName: 'Mary#', lastName: 'Smith$' },
 
-  // Risk S2: zip code (equivalence partitioning and exploratory boundaries).
-  // The site defines no zip boundary, so TC-S2-05 and TC-S2-06 are exploratory, not textbook BVA.
-  { id: 'TC-S2-01', description: 'a numeric five-digit zip is accepted', ...validCustomer },
-  { id: 'TC-S2-02', description: 'letters in the zip are accepted (characterization)', ...validCustomer, zip: 'abcde' },
-  { id: 'TC-S2-03', description: 'special characters in the zip are accepted (characterization)', ...validCustomer, zip: '!@#$%' },
-  { id: 'TC-S2-04', description: 'mixed letters and digits in the zip are accepted (characterization)', ...validCustomer, zip: '1234a' },
-  { id: 'TC-S2-05', description: 'a one-digit zip is accepted (exploratory boundary, characterization)', ...validCustomer, zip: '1' },
-  { id: 'TC-S2-06', description: 'a 500-character zip is accepted (exploratory boundary, characterization)', ...validCustomer, zip: '1'.repeat(500) },
+  // Zip code (equivalence partitioning and exploratory boundaries).
+  // The site defines no zip boundary, so the one-digit and 500-character cases
+  // are exploratory, not textbook boundary value analysis.
+  { name: 'five-digit zip', ...validCustomer },
+  { name: 'zip with letters', ...validCustomer, zip: 'abcde' },
+  { name: 'zip with special characters', ...validCustomer, zip: '!@#$%' },
+  { name: 'zip with letters and digits', ...validCustomer, zip: '1234a' },
+  { name: 'one-digit zip', ...validCustomer, zip: '1' },
+  { name: '500-character zip', ...validCustomer, zip: '1'.repeat(500) },
 ];

@@ -1,12 +1,12 @@
 import { test, expect } from '../fixtures';
 import { beginCheckoutWithItem, completeCheckout, openCart, startCheckout } from '../helpers/checkoutFlow';
 
-test.describe('State transition: resubmission after finish (risk F2)', () => {
+test.describe('Ordering again after finish', () => {
   // Confirmed manually: after a completed order, browser Back returns to the
   // overview and Finish confirms a second order. The cart is already empty by
-  // then, so it is also an empty order (compare TC-C1-01).
-  test('TC-F2-01: browser Back after finish should not allow a second order', async ({ page, checkoutStepTwoPage }) => {
-    test.fail(true, 'Known defect F2: browser Back after finish allows a second order');
+  // then, so it is also an empty order (see the empty cart test in decision-table.spec.ts).
+  test('browser Back cannot place a second order', async ({ page, checkoutStepTwoPage }) => {
+    test.fail(true, 'Known defect: browser Back after finish allows a second order');
 
     await beginCheckoutWithItem(page);
     await completeCheckout(page);
@@ -18,7 +18,7 @@ test.describe('State transition: resubmission after finish (risk F2)', () => {
     await expect(page).not.toHaveURL(/checkout-complete\.html/);
   });
 
-  test('TC-F2-02: after a completed order, a second order with a new item completes normally', async ({ page, inventoryPage, checkoutCompletePage }) => {
+  test('a new order after a completed one works', async ({ page, inventoryPage, checkoutCompletePage }) => {
     await beginCheckoutWithItem(page);
     await completeCheckout(page);
     await checkoutCompletePage.backToProducts();
