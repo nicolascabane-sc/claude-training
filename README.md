@@ -103,6 +103,7 @@ To add a test: reuse the helpers in `tests/helpers/checkoutFlow.ts`, and for a n
 
 - **GitHub Actions** (`.github/workflows/playwright.yml`) runs on every pull request and every push to `main`, in the official Playwright Docker image, which has Chromium preinstalled. A run takes about one minute, and the HTML report is uploaded as an artifact for 30 days.
 - **Credentials** are never stored in the repo. Locally they come from `.env`; in CI they come from the repository secrets `SAUCE_USERNAME` and `SAUCE_PASSWORD`. If either is missing, the run stops with a message saying so.
+- **Published report:** after every push to `main`, CI deploys the HTML report to the Vercel project `claude-training-report`. This needs the repository secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. To link the project locally, run `vercel link`; it writes `.vercel/`, which is git-ignored.
 - **Upgrading Playwright:** when you upgrade `@playwright/test`, change the Docker image tag in the workflow to the same version.
 
 ## Limitations

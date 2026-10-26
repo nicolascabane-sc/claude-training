@@ -31,3 +31,11 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+    # Publish the report on Vercel after every push to main, even when tests fail.
+    - name: Deploy report to Vercel
+      if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      run: npx --yes vercel@65.2.0 deploy playwright-report --prod --yes --token "$VERCEL_TOKEN"
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
