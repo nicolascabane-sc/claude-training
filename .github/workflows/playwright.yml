@@ -37,7 +37,7 @@ jobs:
       if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       run: |
         mkdir -p public
-        cp site/index.html public/
+        cp -R site/. public/
         cp -R playwright-report public/report
     - name: Deploy site to Vercel
       if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}

@@ -4,91 +4,629 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Checkout Test Suite</title>
-<meta name="description" content="Risk-based Playwright tests for the saucedemo.com checkout flow, with the latest HTML report.">
+<meta name="description" content="Risk-based Playwright tests for the saucedemo.com checkout flow: strategy, test design, known defects, CI, and the latest HTML report.">
 <style>
   :root {
     --bg: #fafaf9; --fg: #1c1917; --muted: #57534e; --line: #e7e5e4;
-    --card: #ffffff; --accent: #2563eb; --accent-fg: #ffffff; --warn: #b45309;
+    --card: #ffffff; --soft: #f5f5f4;
+    --accent: #2563eb; --accent-soft: #dbeafe; --accent-fg: #ffffff;
+    --ok: #15803d; --ok-soft: #dcfce7;
+    --bad: #b91c1c; --bad-soft: #fee2e2;
+    --warn: #b45309; --warn-soft: #fef3c7;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #0c0a09; --fg: #f5f5f4; --muted: #a8a29e; --line: #292524;
-      --card: #1c1917; --accent: #60a5fa; --accent-fg: #0c0a09; --warn: #fbbf24;
+      --card: #1c1917; --soft: #161412;
+      --accent: #60a5fa; --accent-soft: #172554; --accent-fg: #0c0a09;
+      --ok: #4ade80; --ok-soft: #052e16;
+      --bad: #f87171; --bad-soft: #450a0a;
+      --warn: #fbbf24; --warn-soft: #422006;
     }
   }
   :root[data-theme="dark"] {
     --bg: #0c0a09; --fg: #f5f5f4; --muted: #a8a29e; --line: #292524;
-    --card: #1c1917; --accent: #60a5fa; --accent-fg: #0c0a09; --warn: #fbbf24;
+    --card: #1c1917; --soft: #161412;
+    --accent: #60a5fa; --accent-soft: #172554; --accent-fg: #0c0a09;
+    --ok: #4ade80; --ok-soft: #052e16;
+    --bad: #f87171; --bad-soft: #450a0a;
+    --warn: #fbbf24; --warn-soft: #422006;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0; background: var(--bg); color: var(--fg);
     font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
   }
-  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 64px; }
-  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 12px; }
-  h2 { font-size: 1.15rem; margin: 40px 0 12px; }
-  p { margin: 0 0 12px; }
-  .lead { color: var(--muted); font-size: 1.1rem; }
-  .cta {
-    display: inline-block; margin: 16px 0 8px; padding: 10px 18px; border-radius: 8px;
-    background: var(--accent); color: var(--accent-fg); font-weight: 600; text-decoration: none;
-  }
+  main { max-width: 980px; margin: 0 auto; padding: 0 16px 64px; }
   a { color: var(--accent); }
-  ul { padding-left: 20px; margin: 0; }
-  li { margin-bottom: 6px; }
-  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
-  table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
-  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-weight: 600; }
-  tr:last-child td { border-bottom: none; }
-  code { font-size: 0.9em; }
-  .defect { color: var(--warn); font-weight: 600; }
-  footer { margin-top: 48px; color: var(--muted); font-size: 0.9rem; }
+  code { font: 0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  h1 { font-size: clamp(2rem, 5vw, 2.75rem); line-height: 1.15; margin: 0 0 14px; letter-spacing: -0.02em; }
+  h2 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 8px; letter-spacing: -0.01em; }
+  h3 { font-size: 1.05rem; margin: 0 0 8px; }
+  p { margin: 0 0 12px; }
+  .muted { color: var(--muted); }
+  .eyebrow { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+
+  /* Hero */
+  .hero { padding: 56px 0 32px; }
+  .lead { color: var(--muted); font-size: 1.15rem; max-width: 680px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 32px; }
+  .btn {
+    display: inline-block; padding: 10px 18px; border-radius: 8px; font-weight: 600; text-decoration: none;
+    border: 1px solid var(--line); color: var(--fg); background: var(--card);
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .stat b { display: block; font-size: 1.8rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 0.9rem; }
+  .stat.bad b { color: var(--bad); }
+
+  nav.toc { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+  nav.toc a { color: var(--muted); text-decoration: none; }
+  nav.toc a:hover { color: var(--fg); }
+
+  section { padding-top: 56px; }
+  .section-intro { max-width: 700px; color: var(--muted); margin-bottom: 20px; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .diagram { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; }
+  .diagram svg { display: block; width: 100%; height: auto; min-width: 640px; }
+  .caption { font-size: 0.88rem; color: var(--muted); margin-top: 8px; }
+  .scroll-hint { display: none; font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+
+  /* SVG styling: everything reads its colors from the page tokens. */
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--fg); }
+  svg .t-sm { font-size: 12px; fill: var(--muted); }
+  svg .t-mono { font-family: ui-monospace, Menlo, monospace; font-size: 11px; fill: var(--muted); }
+  svg .t-strong { font-size: 14px; font-weight: 600; }
+  svg .node { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+  svg .node.accent { stroke: var(--accent); fill: var(--accent-soft); }
+  svg .node.ok { stroke: var(--ok); fill: var(--ok-soft); }
+  svg .node.bad { stroke: var(--bad); fill: var(--bad-soft); }
+  svg .edge { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+  svg .edge.bad { stroke: var(--bad); stroke-dasharray: 6 4; }
+  svg .edge.ok { stroke: var(--ok); }
+  svg .arrow { fill: var(--muted); }
+  svg .arrow.bad { fill: var(--bad); }
+  svg .arrow.ok { fill: var(--ok); }
+  svg .badge { fill: var(--warn); }
+  svg .badge-text { fill: var(--bg); font-size: 11px; font-weight: 700; }
+  svg .t-bad { fill: var(--bad); font-size: 12px; font-weight: 600; }
+  svg .t-ok { fill: var(--ok); font-size: 12px; font-weight: 600; }
+  svg .leader { stroke: var(--warn); stroke-width: 1.2; stroke-dasharray: 2 3; }
+
+  /* Screenshot gallery */
+  .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+  figure { margin: 0; }
+  .shot { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .shot button { all: unset; cursor: zoom-in; display: block; width: 100%; }
+  .shot button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .shot img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 750; object-fit: cover; object-position: top; border-bottom: 1px solid var(--line); }
+  .shot figcaption { padding: 10px 12px; font-size: 0.88rem; }
+  .shot figcaption b { display: block; font-size: 0.95rem; }
+  .step-num { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); font-size: 0.75rem; font-weight: 700; margin-right: 6px; vertical-align: 1px; }
+  .shot.bad { border-color: var(--bad); }
+  .shot.bad .step-num { background: var(--bad); color: var(--bg); }
+
+  /* Risk cards */
+  .risks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .risk { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+  .risk .rid { grid-row: span 3; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--warn); color: var(--bg); font-weight: 700; font-size: 0.85rem; }
+  .risk h3 { margin: 4px 0 0; }
+  .risk p { margin: 0; color: var(--muted); font-size: 0.93rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .tag { font-size: 0.78rem; padding: 2px 8px; border-radius: 999px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); }
+  .tag.tech { background: var(--accent-soft); border-color: transparent; color: var(--fg); }
+
+  /* Technique blocks */
+  .technique { margin-top: 28px; }
+  .technique-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .technique-head h3 { margin: 0; font-size: 1.15rem; }
+
+  .dtable { display: grid; grid-template-columns: 120px 1fr 1fr; gap: 8px; }
+  .dtable .h { font-size: 0.85rem; font-weight: 600; color: var(--muted); display: flex; align-items: center; justify-content: center; text-align: center; padding: 6px; }
+  .dtable .rowh { justify-content: flex-start; text-align: left; }
+  .cell { border-radius: 10px; padding: 12px; border: 1px solid var(--line); background: var(--card); font-size: 0.9rem; }
+  .cell b { display: block; font-size: 0.95rem; margin-bottom: 2px; }
+  .cell.ok { border-color: var(--ok); background: var(--ok-soft); }
+  .cell.ok b { color: var(--ok); }
+  .cell.bad { border-color: var(--bad); background: var(--bad-soft); }
+  .cell.bad b { color: var(--bad); }
+  .cell small { color: var(--muted); display: block; margin-top: 4px; }
+
+  .partitions { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; }
+  .partition h4 { margin: 0 0 10px; font-size: 0.95rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--ok); background: var(--ok-soft); border-radius: 8px; padding: 6px 10px; font-size: 0.85rem; }
+  .chip code { display: block; color: var(--muted); font-size: 0.78rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip.explore { border-style: dashed; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.85rem; color: var(--muted); margin-top: 12px; }
+  .legend i { display: inline-block; width: 14px; height: 10px; border: 1px solid var(--ok); background: var(--ok-soft); border-radius: 3px; margin-right: 6px; vertical-align: 0; }
+  .legend i.dashed { border-style: dashed; }
+
+  /* Defects */
+  .defect { display: grid; grid-template-columns: 1fr 1.4fr; gap: 18px; align-items: start; }
+  .defect + .defect { margin-top: 18px; }
+  .defect-text h3 { color: var(--bad); }
+  .defect-text ol { margin: 8px 0 12px; padding-left: 20px; }
+  .defect-shots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .defect-shots.one { grid-template-columns: 1fr; }
+  .sev { display: inline-block; font-size: 0.78rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); }
+
+  /* test.fail lifecycle */
+  .lifecycle { display: grid; gap: 10px; }
+  .lane { display: grid; grid-template-columns: 150px repeat(3, 1fr); gap: 8px 26px; align-items: stretch; }
+  .lane .label { font-weight: 600; font-size: 0.92rem; display: flex; align-items: center; }
+  .pill { border-radius: 10px; padding: 10px 12px; font-size: 0.88rem; border: 1px solid var(--line); background: var(--card); position: relative; }
+  .pill:not(:last-child)::after { content: "→"; position: absolute; right: -19px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.9rem; }
+  .pill.ok { border-color: var(--ok); background: var(--ok-soft); }
+  .pill.bad { border-color: var(--bad); background: var(--bad-soft); }
+
+  /* Architecture */
+  .layers { display: grid; grid-template-columns: 1fr 200px; gap: 14px; }
+  .stack { display: grid; gap: 0; }
+  .layer { border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 12px 14px; }
+  .layer.top { border-color: var(--accent); background: var(--accent-soft); }
+  .layer.site { background: var(--soft); border-style: dashed; }
+  .layer h4 { margin: 0 0 2px; font-size: 0.95rem; }
+  .layer p { margin: 0 0 8px; font-size: 0.85rem; color: var(--muted); }
+  .layer .chips .tag { font-family: ui-monospace, Menlo, monospace; }
+  .down { text-align: center; color: var(--muted); font-size: 0.8rem; line-height: 1; padding: 6px 0; }
+  .side { align-self: start; border: 1px solid var(--warn); background: var(--warn-soft); border-radius: 10px; padding: 12px 14px; }
+  .side h4 { margin: 0 0 4px; font-size: 0.95rem; }
+  .side p { margin: 0; font-size: 0.85rem; color: var(--muted); }
+
+  /* CI pipeline */
+  .pipeline { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+  .stage { flex: 1 1 130px; border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 10px 12px; font-size: 0.86rem; }
+  .stage b { display: block; font-size: 0.92rem; }
+  .stage.main { border-style: dashed; border-color: var(--accent); }
+  .stage small { color: var(--muted); }
+  .pipe-arrow { align-self: center; color: var(--muted); }
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+  .facts .card p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+  ul.plain { padding-left: 20px; margin: 0; }
+  ul.plain li { margin-bottom: 6px; }
+
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; }
+
+  dialog { border: none; padding: 0; max-width: min(1200px, 94vw); background: transparent; }
+  dialog::backdrop { background: rgb(0 0 0 / 0.75); }
+  dialog img { display: block; width: 100%; height: auto; border-radius: 8px; }
+  dialog p { color: #fff; margin: 8px 0 0; text-align: center; font-size: 0.9rem; }
+
+  @media (max-width: 760px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .shots { grid-template-columns: repeat(2, 1fr); }
+    .risks, .partitions, .defect, .layers, .facts { grid-template-columns: 1fr; }
+    .lane { grid-template-columns: 1fr; }
+    .pill:not(:last-child)::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -15px; transform: translateX(-50%); }
+    .lane .pill { margin-bottom: 8px; }
+    .pipe-arrow { display: none; }
+    .dtable { grid-template-columns: 80px 1fr 1fr; }
+    .scroll-hint { display: block; }
+  }
+  @media (max-width: 480px) {
+    .shots, .defect-shots { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 <main>
-  <h1>Checkout test suite</h1>
-  <p class="lead">Risk-based Playwright tests for the checkout flow of <a href="https://www.saucedemo.com">saucedemo.com</a>, a public demo shop. 15 tests on Chromium, run in GitHub Actions on every pull request and push to <code>main</code>.</p>
-  <a class="cta" href="report/">Open the latest test report →</a>
 
-  <h2>Test strategy</h2>
-  <ul>
-    <li><strong>Scope:</strong> checkout only, from login and adding to the cart through to the order confirmation.</li>
-    <li><strong>Risk-based:</strong> each spec covers one checkout risk with the test design technique that suits it.</li>
-    <li><strong>Characterization tests:</strong> saucedemo specifies no rules for names or zip codes, so the tests record what the site does today instead of guessing a rule.</li>
-    <li><strong>Known defects:</strong> tests that check behaviour the site gets wrong are marked <code>test.fail</code>. They pass while the defect exists, so the suite stays green.</li>
-  </ul>
+  <header class="hero">
+    <div class="eyebrow">Playwright · TypeScript · saucedemo.com</div>
+    <h1>Checkout test suite</h1>
+    <p class="lead">Risk-based end-to-end tests for the checkout flow of <a href="https://www.saucedemo.com">saucedemo.com</a>, a public demo shop. Each risk gets the test design technique that suits it, two real defects are pinned down by tests, and every push to <code>main</code> runs the suite and publishes the report here.</p>
+    <div class="actions">
+      <a class="btn primary" href="report/">Open the latest test report →</a>
+      <a class="btn" href="https://github.com/nicolascabane-sc/claude-training">Source on GitHub</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>15</b><span>tests on Chromium</span></div>
+      <div class="stat"><b>4</b><span>checkout risks covered</span></div>
+      <div class="stat bad"><b>2</b><span>known defects found</span></div>
+      <div class="stat"><b>~1 min</b><span>per CI run</span></div>
+    </div>
+  </header>
 
-  <h2>Risks and coverage</h2>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Risk</th><th>Technique</th></tr></thead>
-      <tbody>
-        <tr><td>Order with an empty cart</td><td>Decision table, happy path</td></tr>
-        <tr><td>Zip code validation</td><td>Equivalence partitioning, exploratory boundaries</td></tr>
-        <tr><td>Name field validation</td><td>Equivalence partitioning</td></tr>
-        <tr><td>Ordering again after finish</td><td>State transition</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#flow">The flow</a>
+    <a href="#risks">Risks</a>
+    <a href="#design">Test design</a>
+    <a href="#defects">Defects</a>
+    <a href="#results">Reading results</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#ci">CI &amp; publishing</a>
+    <a href="#limits">Limitations</a>
+  </nav>
 
-  <h2>Known defects</h2>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Defect</th><th>How to reproduce</th></tr></thead>
-      <tbody>
-        <tr><td class="defect">An order can be placed with an empty cart</td><td>Log in, open the empty cart, check out, fill in the form, finish</td></tr>
-        <tr><td class="defect">Browser Back after finishing allows a second order</td><td>Complete an order, press browser Back, click Finish</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <!-- 1. Flow -->
+  <section id="flow">
+    <div class="eyebrow">1 · Scope</div>
+    <h2>The checkout flow under test</h2>
+    <p class="section-intro">Scope is the checkout only: from login and adding a product to the cart, through to the order confirmation. Product sorting, other user types and the rest of the shop are out of scope. The markers show where each risk sits in the flow.</p>
 
-  <h2>Reading the report</h2>
-  <p>The two known-defect tests appear with ✘ but count as passed, because <code>test.fail</code> expects them to fail. Any other ✘ is a real failure. If a known-defect test turns red with <code>Expected to fail, but passed</code>, the site has fixed that defect.</p>
+    <div class="diagram" role="img" aria-label="Checkout flow: Login, Products, Cart, Your information, Overview, Complete. Risk 1 sits at the cart, risks 2 and 3 at the information form, risk 4 is pressing browser Back from Complete to Overview.">
+      <svg viewBox="0 0 960 250" aria-hidden="true">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="ah-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow bad" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
 
-  <footer>Published by CI after every push to <code>main</code>. The full documentation is in the repository README.</footer>
+        <!-- Browser Back loop (risk 4) -->
+        <path class="edge bad" d="M890 82 C890 28, 726 28, 726 82" marker-end="url(#ah-bad)"/>
+        <text class="t-bad" x="808" y="26" text-anchor="middle">Browser Back, then Finish again</text>
+
+        <!-- Nodes -->
+        <g>
+          <rect class="node" x="0"   y="86" width="140" height="62" rx="10"/>
+          <text class="t-strong" x="70" y="114" text-anchor="middle">Login</text>
+          <text class="t-mono" x="70" y="134" text-anchor="middle">/</text>
+
+          <rect class="node" x="164" y="86" width="140" height="62" rx="10"/>
+          <text class="t-strong" x="234" y="114" text-anchor="middle">Products</text>
+          <text class="t-mono" x="234" y="134" text-anchor="middle">inventory.html</text>
+
+          <rect class="node" x="328" y="86" width="140" height="62" rx="10"/>
+          <text class="t-strong" x="398" y="114" text-anchor="middle">Cart</text>
+          <text class="t-mono" x="398" y="134" text-anchor="middle">cart.html</text>
+
+          <rect class="node" x="492" y="86" width="140" height="62" rx="10"/>
+          <text class="t-strong" x="562" y="114" text-anchor="middle">Your information</text>
+          <text class="t-mono" x="562" y="134" text-anchor="middle">checkout-step-one</text>
+
+          <rect class="node" x="656" y="86" width="140" height="62" rx="10"/>
+          <text class="t-strong" x="726" y="114" text-anchor="middle">Overview</text>
+          <text class="t-mono" x="726" y="134" text-anchor="middle">checkout-step-two</text>
+
+          <rect class="node ok" x="820" y="86" width="140" height="62" rx="10"/>
+          <text class="t-strong" x="890" y="114" text-anchor="middle">Complete</text>
+          <text class="t-mono" x="890" y="134" text-anchor="middle">checkout-complete</text>
+        </g>
+
+        <!-- Forward edges -->
+        <line class="edge" x1="140" y1="117" x2="162" y2="117" marker-end="url(#ah)"/>
+        <line class="edge" x1="304" y1="117" x2="326" y2="117" marker-end="url(#ah)"/>
+        <line class="edge" x1="468" y1="117" x2="490" y2="117" marker-end="url(#ah)"/>
+        <line class="edge" x1="632" y1="117" x2="654" y2="117" marker-end="url(#ah)"/>
+        <line class="edge" x1="796" y1="117" x2="818" y2="117" marker-end="url(#ah)"/>
+
+        <!-- Risk markers -->
+        <line class="leader" x1="398" y1="148" x2="398" y2="180"/>
+        <circle class="badge" cx="398" cy="192" r="12"/><text class="badge-text" x="398" y="196" text-anchor="middle">R1</text>
+        <text class="t-sm" x="398" y="224" text-anchor="middle">Checkout with an</text>
+        <text class="t-sm" x="398" y="240" text-anchor="middle">empty cart</text>
+
+        <line class="leader" x1="562" y1="148" x2="562" y2="180"/>
+        <circle class="badge" cx="548" cy="192" r="12"/><text class="badge-text" x="548" y="196" text-anchor="middle">R2</text>
+        <circle class="badge" cx="576" cy="192" r="12"/><text class="badge-text" x="576" y="196" text-anchor="middle">R3</text>
+        <text class="t-sm" x="562" y="224" text-anchor="middle">Zip and name input;</text>
+        <text class="t-sm" x="562" y="240" text-anchor="middle">empty form → error</text>
+
+        <circle class="badge" cx="808" cy="41" r="12"/><text class="badge-text" x="808" y="45" text-anchor="middle">R4</text>
+      </svg>
+    </div>
+    <p class="scroll-hint">Swipe the diagram sideways to see all of it.</p>
+
+    <div class="shots">
+      <figure class="shot"><button type="button" data-full="images/01-login.jpg"><img src="images/01-login.jpg" alt="saucedemo login page with username and password filled in" loading="lazy"></button>
+        <figcaption><b><span class="step-num">1</span>Login</b>Standard user; credentials come from env vars.</figcaption></figure>
+      <figure class="shot"><button type="button" data-full="images/02-products.jpg"><img src="images/02-products.jpg" alt="Products page with the Sauce Labs Backpack added to the cart" loading="lazy"></button>
+        <figcaption><b><span class="step-num">2</span>Products</b>Add the Sauce Labs Backpack.</figcaption></figure>
+      <figure class="shot"><button type="button" data-full="images/03-cart.jpg"><img src="images/03-cart.jpg" alt="Cart page with one backpack" loading="lazy"></button>
+        <figcaption><b><span class="step-num">3</span>Cart</b>Review the cart and start checkout.</figcaption></figure>
+      <figure class="shot"><button type="button" data-full="images/04-information.jpg"><img src="images/04-information.jpg" alt="Checkout information form filled with Mary Smith, 12345" loading="lazy"></button>
+        <figcaption><b><span class="step-num">4</span>Your information</b>The valid customer: Mary Smith, 12345.</figcaption></figure>
+      <figure class="shot"><button type="button" data-full="images/05-overview.jpg"><img src="images/05-overview.jpg" alt="Checkout overview showing the backpack and a total of $32.39" loading="lazy"></button>
+        <figcaption><b><span class="step-num">5</span>Overview</b>Item, payment, shipping and total.</figcaption></figure>
+      <figure class="shot"><button type="button" data-full="images/06-complete.jpg"><img src="images/06-complete.jpg" alt="Order confirmation: Thank you for your order!" loading="lazy"></button>
+        <figcaption><b><span class="step-num">6</span>Complete</b>“Thank you for your order!”</figcaption></figure>
+    </div>
+    <p class="caption">Screenshots of the live site, taken with Playwright. Select one to enlarge.</p>
+  </section>
+
+  <!-- 2. Risks -->
+  <section id="risks">
+    <div class="eyebrow">2 · Strategy</div>
+    <h2>Four risks, one spec each</h2>
+    <p class="section-intro">The suite is risk-based: each spec covers one thing that could go wrong for a shop and its customers, and uses the test design technique that fits that risk.</p>
+    <div class="risks">
+      <div class="card risk"><span class="rid">R1</span>
+        <h3>Order with an empty cart</h3>
+        <p>The shop confirms an order with nothing in it.</p>
+        <div class="tags"><span class="tag tech">Decision table</span><span class="tag tech">Happy path</span><span class="tag">decision-table.spec.ts</span><span class="tag">happy-path.spec.ts</span></div>
+      </div>
+      <div class="card risk"><span class="rid">R2</span>
+        <h3>Zip code validation</h3>
+        <p>Wrong addresses could reach orders.</p>
+        <div class="tags"><span class="tag tech">Equivalence partitioning</span><span class="tag tech">Exploratory boundaries</span><span class="tag">data-driven.spec.ts</span></div>
+      </div>
+      <div class="card risk"><span class="rid">R3</span>
+        <h3>Name field validation</h3>
+        <p>Valid names, such as accented ones, must not be rejected.</p>
+        <div class="tags"><span class="tag tech">Equivalence partitioning</span><span class="tag">data-driven.spec.ts</span></div>
+      </div>
+      <div class="card risk"><span class="rid">R4</span>
+        <h3>Ordering again after finish</h3>
+        <p>A customer could place a duplicate order.</p>
+        <div class="tags"><span class="tag tech">State transition</span><span class="tag">resubmission.spec.ts</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Test design -->
+  <section id="design">
+    <div class="eyebrow">3 · Test design</div>
+    <h2>How the test cases were derived</h2>
+    <p class="section-intro">saucedemo has no written rules for names or zip codes, so these are <strong>characterization tests</strong>: they record what the site does today (it accepts all input) instead of guessing a rule. Whether a real shop should reject some of that input is a product question, not a test question.</p>
+
+    <div class="technique">
+      <div class="technique-head"><span class="tag tech">R1</span><h3>Decision table: cart × form</h3></div>
+      <div class="dtable" role="table" aria-label="Decision table of cart state against form state">
+        <div class="h" role="columnheader"></div>
+        <div class="h" role="columnheader">Form empty</div>
+        <div class="h" role="columnheader">Form filled in</div>
+
+        <div class="h rowh" role="rowheader">Cart empty</div>
+        <div class="cell ok" role="cell"><b>✓ Error shown</b>Stays on step one.<small>empty cart and empty form shows an error</small></div>
+        <div class="cell bad" role="cell"><b>✗ Order confirmed</b>Expected: no order. <strong>Known defect.</strong><small>an empty cart cannot be ordered</small></div>
+
+        <div class="h rowh" role="rowheader">Cart filled</div>
+        <div class="cell ok" role="cell"><b>✓ Error shown</b>Stays on step one.<small>filled cart and empty form shows an error</small></div>
+        <div class="cell ok" role="cell"><b>✓ Order completes</b>“Back Home” returns to products.<small>a valid order completes</small></div>
+      </div>
+      <figure class="shot" style="max-width: 420px; margin-top: 14px;"><button type="button" data-full="images/04b-form-error.jpg"><img src="images/04b-form-error.jpg" alt="Checkout form with the error: First Name is required" loading="lazy"></button>
+        <figcaption><b>Empty form</b>Continue is blocked with “Error: First Name is required”.</figcaption></figure>
+    </div>
+
+    <div class="technique">
+      <div class="technique-head"><span class="tag tech">R2</span><span class="tag tech">R3</span><h3>Equivalence partitions: names and zip codes</h3></div>
+      <p class="muted">One test per row of <code>test-data/checkout.ts</code>. Each row starts from the valid customer (Mary Smith, 12345) and changes only the field under test, so a failure points at exactly one input.</p>
+      <div class="partitions">
+        <div class="card partition">
+          <h4>Names</h4>
+          <div class="chips">
+            <span class="chip">Plain<code>Mary Smith</code></span>
+            <span class="chip">Accented<code>José Ángel</code></span>
+            <span class="chip">Special characters<code>Mary# Smith$</code></span>
+          </div>
+        </div>
+        <div class="card partition">
+          <h4>Zip code</h4>
+          <div class="chips">
+            <span class="chip">Five digits<code>12345</code></span>
+            <span class="chip">Letters<code>abcde</code></span>
+            <span class="chip">Special characters<code>!@#$%</code></span>
+            <span class="chip">Letters and digits<code>1234a</code></span>
+            <span class="chip explore">One digit<code>1</code></span>
+            <span class="chip explore">500 characters<code>1111111111…</code></span>
+          </div>
+        </div>
+      </div>
+      <div class="legend"><span><i></i>Partition: accepted, order completes</span><span><i class="dashed"></i>Exploratory boundary: the site defines no zip length</span></div>
+    </div>
+
+    <div class="technique">
+      <div class="technique-head"><span class="tag tech">R4</span><h3>State transition: what happens after an order</h3></div>
+      <div class="diagram" role="img" aria-label="State transition. Valid path: Overview, Finish, Complete, Back Home, Products, new item and checkout, second order completes. Defect path: from Complete, browser Back returns to Overview, and Finish confirms a second order.">
+        <svg viewBox="0 0 800 260" aria-hidden="true">
+          <defs>
+            <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0,0 L10,5 L0,10 z"/></marker>
+            <marker id="ah2-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow ok" d="M0,0 L10,5 L0,10 z"/></marker>
+            <marker id="ah2-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow bad" d="M0,0 L10,5 L0,10 z"/></marker>
+          </defs>
+
+          <!-- Row 1: valid path -->
+          <rect class="node" x="10" y="40" width="140" height="56" rx="10"/>
+          <text class="t-strong" x="80" y="73" text-anchor="middle">Overview</text>
+
+          <rect class="node ok" x="225" y="40" width="140" height="56" rx="10"/>
+          <text class="t-strong" x="295" y="73" text-anchor="middle">Complete</text>
+
+          <rect class="node" x="440" y="40" width="140" height="56" rx="10"/>
+          <text class="t-strong" x="510" y="73" text-anchor="middle">Products</text>
+
+          <rect class="node ok" x="655" y="40" width="140" height="56" rx="10"/>
+          <text class="t-strong" x="725" y="66" text-anchor="middle">New order</text>
+          <text class="t-ok" x="725" y="84" text-anchor="middle">✓ completes</text>
+
+          <line class="edge" x1="150" y1="68" x2="223" y2="68" marker-end="url(#ah2)"/>
+          <text class="t-sm" x="187" y="60" text-anchor="middle">Finish</text>
+          <line class="edge ok" x1="365" y1="68" x2="438" y2="68" marker-end="url(#ah2-ok)"/>
+          <text class="t-sm" x="402" y="60" text-anchor="middle">Back Home</text>
+          <line class="edge ok" x1="580" y1="68" x2="653" y2="68" marker-end="url(#ah2-ok)"/>
+          <text class="t-sm" x="617" y="46" text-anchor="middle">add item,</text>
+          <text class="t-sm" x="617" y="60" text-anchor="middle">check out</text>
+
+          <!-- Row 2: defect path -->
+          <rect class="node" x="215" y="180" width="160" height="56" rx="10"/>
+          <text class="t-strong" x="295" y="206" text-anchor="middle">Overview again</text>
+          <text class="t-mono" x="295" y="224" text-anchor="middle">cart already empty</text>
+
+          <rect class="node bad" x="460" y="180" width="220" height="56" rx="10"/>
+          <text class="t-strong" x="570" y="206" text-anchor="middle">Second order</text>
+          <text class="t-bad" x="570" y="224" text-anchor="middle">✗ confirmed (should be blocked)</text>
+
+          <line class="edge bad" x1="295" y1="96" x2="295" y2="178" marker-end="url(#ah2-bad)"/>
+          <text class="t-bad" x="305" y="142">Browser Back</text>
+          <line class="edge bad" x1="375" y1="208" x2="458" y2="208" marker-end="url(#ah2-bad)"/>
+          <text class="t-sm" x="416" y="200" text-anchor="middle">Finish</text>
+        </svg>
+      </div>
+      <p class="scroll-hint">Swipe the diagram sideways to see all of it.</p>
+      <p class="caption">Green: <em>a new order after a completed one works</em>. Red: <em>browser Back cannot place a second order</em>, a known defect.</p>
+    </div>
+  </section>
+
+  <!-- 4. Defects -->
+  <section id="defects">
+    <div class="eyebrow">4 · Findings</div>
+    <h2>Two known defects</h2>
+    <p class="section-intro">Both are low severity on a demo site, but they would matter in a real shop. Each one has a test that checks the correct behaviour and is marked <code>test.fail</code> until the site is fixed.</p>
+
+    <div class="card defect">
+      <div class="defect-text">
+        <h3>An order can be placed with an empty cart</h3>
+        <span class="sev">Low severity · R1</span>
+        <ol>
+          <li>Log in and open the empty cart.</li>
+          <li>Check out and fill in the form.</li>
+          <li>The overview shows a total of $0.00 and Finish still works.</li>
+        </ol>
+        <p class="muted">Test: <em>an empty cart cannot be ordered</em></p>
+      </div>
+      <div class="defect-shots">
+        <figure class="shot bad"><button type="button" data-full="images/defect-empty-overview.jpg"><img src="images/defect-empty-overview.jpg" alt="Checkout overview with no items and Total $0.00" loading="lazy"></button>
+          <figcaption><b><span class="step-num">a</span>Empty overview</b>No items, total $0.00.</figcaption></figure>
+        <figure class="shot bad"><button type="button" data-full="images/defect-empty-complete.jpg"><img src="images/defect-empty-complete.jpg" alt="Order confirmation shown for the empty order" loading="lazy"></button>
+          <figcaption><b><span class="step-num">b</span>Order confirmed</b>The empty order goes through.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="card defect">
+      <div class="defect-text">
+        <h3>Browser Back after finishing allows a second order</h3>
+        <span class="sev">Low severity · R4</span>
+        <ol>
+          <li>Complete an order.</li>
+          <li>Press the browser Back button.</li>
+          <li>The overview reappears; Finish confirms a second order.</li>
+        </ol>
+        <p class="muted">The cart was already emptied by the first order, so the second one is also an empty order. Test: <em>browser Back cannot place a second order</em></p>
+      </div>
+      <div class="defect-shots one">
+        <figure class="shot bad"><button type="button" data-full="images/defect-back-overview.jpg"><img src="images/defect-back-overview.jpg" alt="Checkout overview reached with browser Back after the order, with a working Finish button" loading="lazy"></button>
+          <figcaption><b><span class="step-num">a</span>After browser Back</b>The overview is back, empty, with Finish enabled.</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Reading results -->
+  <section id="results">
+    <div class="eyebrow">5 · Reading the report</div>
+    <h2>Why two ✘ still mean a green run</h2>
+    <p class="section-intro"><code>test.fail</code> tells Playwright that a test is expected to fail. The two known-defect tests check the correct behaviour, so they fail while the defect exists, and Playwright counts that as a pass. They take about 5 seconds each, because they check that something does <em>not</em> happen and wait the full timeout.</p>
+    <div class="card lifecycle">
+      <div class="lane">
+        <div class="label">Defect still there</div>
+        <div class="pill">Test checks the correct behaviour</div>
+        <div class="pill">Assertion fails, shown with ✘</div>
+        <div class="pill ok"><b>Counted as passed</b> · CI stays green</div>
+      </div>
+      <div class="lane">
+        <div class="label">Defect fixed</div>
+        <div class="pill">Test checks the correct behaviour</div>
+        <div class="pill">Assertion passes</div>
+        <div class="pill bad"><b>“Expected to fail, but passed”</b> · remove <code>test.fail</code></div>
+      </div>
+    </div>
+    <p class="caption">A ✘ on any other test is a real failure: the summary shows <code>failed</code> and CI turns red.</p>
+  </section>
+
+  <!-- 6. Architecture -->
+  <section id="architecture">
+    <div class="eyebrow">6 · Code structure</div>
+    <h2>Architecture</h2>
+    <p class="section-intro">Specs read like the risk they cover. The detail lives in layers below them: shared steps with their checks in helpers, and locators and actions in page objects.</p>
+    <div class="layers">
+      <div class="stack">
+        <div class="layer top">
+          <h4>Specs · <code>tests/checkout/</code></h4>
+          <p>One spec per risk. Import <code>test</code> and <code>expect</code> from the fixtures.</p>
+          <div class="chips"><span class="tag">decision-table</span><span class="tag">happy-path</span><span class="tag">data-driven</span><span class="tag">resubmission</span></div>
+        </div>
+        <div class="down">▼</div>
+        <div class="layer">
+          <h4>Fixtures and helpers</h4>
+          <p><code>fixtures.ts</code> hands specs their page objects by name. <code>helpers/checkoutFlow.ts</code> holds shared steps with their checks.</p>
+          <div class="chips"><span class="tag">beginCheckoutWithItem</span><span class="tag">beginCheckoutWithEmptyCart</span><span class="tag">completeCheckout</span><span class="tag">continueExpectingError</span></div>
+        </div>
+        <div class="down">▼</div>
+        <div class="layer">
+          <h4>Page objects · <code>pages/</code></h4>
+          <p>One per screen: locators and actions, no assertions.</p>
+          <div class="chips"><span class="tag">LoginPage</span><span class="tag">InventoryPage</span><span class="tag">CartPage</span><span class="tag">CheckoutStepOnePage</span><span class="tag">CheckoutStepTwoPage</span><span class="tag">CheckoutCompletePage</span></div>
+        </div>
+        <div class="down">▼ <code>getByTestId</code></div>
+        <div class="layer site">
+          <h4>saucedemo.com</h4>
+          <p>The live site, located through its <code>data-test</code> attributes.</p>
+        </div>
+      </div>
+      <div class="side">
+        <h4>Test data · <code>test-data/</code></h4>
+        <p><code>checkout.ts</code>: the valid customer and one row per data-driven case. Add a row, get a test.</p>
+        <p style="margin-top:8px"><code>users.ts</code>: login credentials, read from environment variables, never stored in the repo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. CI -->
+  <section id="ci">
+    <div class="eyebrow">7 · Automation</div>
+    <h2>CI and publishing</h2>
+    <p class="section-intro">GitHub Actions runs the suite on every pull request and every push to <code>main</code>, in the official Playwright Docker image with Chromium preinstalled. On <code>main</code> it also publishes this page and the report to Vercel, even when tests fail.</p>
+    <div class="pipeline">
+      <div class="stage"><b>Trigger</b><small>Pull request or push to main</small></div>
+      <span class="pipe-arrow">→</span>
+      <div class="stage"><b>Container</b><small>Playwright Docker image</small></div>
+      <span class="pipe-arrow">→</span>
+      <div class="stage"><b>Install</b><small><code>npm ci</code></small></div>
+      <span class="pipe-arrow">→</span>
+      <div class="stage"><b>Test</b><small>15 tests · secrets for credentials</small></div>
+      <span class="pipe-arrow">→</span>
+      <div class="stage"><b>Artifact</b><small>HTML report kept 30 days</small></div>
+      <span class="pipe-arrow">→</span>
+      <div class="stage main"><b>Publish</b><small>main only · Vercel</small></div>
+    </div>
+    <div class="facts">
+      <div class="card"><h3>Credentials</h3><p>Never in the repo. Locally from <code>.env</code>; in CI from the secrets <code>SAUCE_USERNAME</code> and <code>SAUCE_PASSWORD</code>. A missing one stops the run with a clear message.</p></div>
+      <div class="card"><h3>Reliability</h3><p>Two retries in CI, a single worker, and <code>forbidOnly</code> so a stray <code>test.only</code> cannot slip through. Traces are recorded on the first retry.</p></div>
+      <div class="card"><h3>Upgrades</h3><p>When <code>@playwright/test</code> is upgraded, the Docker image tag in the workflow moves to the same version.</p></div>
+    </div>
+  </section>
+
+  <!-- 8. Limitations -->
+  <section id="limits">
+    <div class="eyebrow">8 · Honest boundaries</div>
+    <h2>Limitations</h2>
+    <div class="card">
+      <ul class="plain">
+        <li>Chromium only; Firefox and WebKit are not tested.</li>
+        <li>The tests depend on the live saucedemo.com site being up. There is no local copy.</li>
+        <li>Three tests submit the same valid customer. They stay separate because each covers a different risk.</li>
+        <li>Neither CI nor <code>npm test</code> checks TypeScript types; Playwright runs the tests without type checking.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    Published by CI after every push to <code>main</code>. Full documentation is in the <a href="https://github.com/nicolascabane-sc/claude-training#readme">repository README</a>. Screenshots: saucedemo.com, a public demo shop by Sauce Labs.
+  </footer>
 </main>
+
+<dialog id="lightbox" aria-label="Enlarged screenshot">
+  <form method="dialog"><button type="submit" style="all:unset;cursor:zoom-out;display:block"><img alt=""><p></p></button></form>
+</dialog>
+<script>
+  // Opens a screenshot full size; click, Escape or the backdrop closes it.
+  const box = document.getElementById('lightbox');
+  const boxImg = box.querySelector('img');
+  const boxCap = box.querySelector('p');
+  document.querySelectorAll('[data-full]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const img = btn.querySelector('img');
+      boxImg.src = btn.dataset.full;
+      boxImg.alt = img.alt;
+      boxCap.textContent = img.alt;
+      box.showModal();
+    });
+  });
+  box.addEventListener('click', (e) => { if (e.target === box) box.close(); });
+</script>
 </body>
 </html>
