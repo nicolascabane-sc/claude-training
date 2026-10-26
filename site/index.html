@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checkout Test Suite</title>
+<meta name="description" content="Risk-based Playwright tests for the saucedemo.com checkout flow, with the latest HTML report.">
+<style>
+  :root {
+    --bg: #fafaf9; --fg: #1c1917; --muted: #57534e; --line: #e7e5e4;
+    --card: #ffffff; --accent: #2563eb; --accent-fg: #ffffff; --warn: #b45309;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c0a09; --fg: #f5f5f4; --muted: #a8a29e; --line: #292524;
+      --card: #1c1917; --accent: #60a5fa; --accent-fg: #0c0a09; --warn: #fbbf24;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c0a09; --fg: #f5f5f4; --muted: #a8a29e; --line: #292524;
+    --card: #1c1917; --accent: #60a5fa; --accent-fg: #0c0a09; --warn: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 64px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 12px; }
+  h2 { font-size: 1.15rem; margin: 40px 0 12px; }
+  p { margin: 0 0 12px; }
+  .lead { color: var(--muted); font-size: 1.1rem; }
+  .cta {
+    display: inline-block; margin: 16px 0 8px; padding: 10px 18px; border-radius: 8px;
+    background: var(--accent); color: var(--accent-fg); font-weight: 600; text-decoration: none;
+  }
+  a { color: var(--accent); }
+  ul { padding-left: 20px; margin: 0; }
+  li { margin-bottom: 6px; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  code { font-size: 0.9em; }
+  .defect { color: var(--warn); font-weight: 600; }
+  footer { margin-top: 48px; color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Checkout test suite</h1>
+  <p class="lead">Risk-based Playwright tests for the checkout flow of <a href="https://www.saucedemo.com">saucedemo.com</a>, a public demo shop. 15 tests on Chromium, run in GitHub Actions on every pull request and push to <code>main</code>.</p>
+  <a class="cta" href="report/">Open the latest test report →</a>
+
+  <h2>Test strategy</h2>
+  <ul>
+    <li><strong>Scope:</strong> checkout only, from login and adding to the cart through to the order confirmation.</li>
+    <li><strong>Risk-based:</strong> each spec covers one checkout risk with the test design technique that suits it.</li>
+    <li><strong>Characterization tests:</strong> saucedemo specifies no rules for names or zip codes, so the tests record what the site does today instead of guessing a rule.</li>
+    <li><strong>Known defects:</strong> tests that check behaviour the site gets wrong are marked <code>test.fail</code>. They pass while the defect exists, so the suite stays green.</li>
+  </ul>
+
+  <h2>Risks and coverage</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Risk</th><th>Technique</th></tr></thead>
+      <tbody>
+        <tr><td>Order with an empty cart</td><td>Decision table, happy path</td></tr>
+        <tr><td>Zip code validation</td><td>Equivalence partitioning, exploratory boundaries</td></tr>
+        <tr><td>Name field validation</td><td>Equivalence partitioning</td></tr>
+        <tr><td>Ordering again after finish</td><td>State transition</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Known defects</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Defect</th><th>How to reproduce</th></tr></thead>
+      <tbody>
+        <tr><td class="defect">An order can be placed with an empty cart</td><td>Log in, open the empty cart, check out, fill in the form, finish</td></tr>
+        <tr><td class="defect">Browser Back after finishing allows a second order</td><td>Complete an order, press browser Back, click Finish</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Reading the report</h2>
+  <p>The two known-defect tests appear with ✘ but count as passed, because <code>test.fail</code> expects them to fail. Any other ✘ is a real failure. If a known-defect test turns red with <code>Expected to fail, but passed</code>, the site has fixed that defect.</p>
+
+  <footer>Published by CI after every push to <code>main</code>. The full documentation is in the repository README.</footer>
+</main>
+</body>
+</html>
