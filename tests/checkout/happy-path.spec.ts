@@ -1,8 +1,8 @@
 import { test, expect } from '../fixtures';
 import { beginCheckoutWithItem, completeCheckout } from '../helpers/checkoutFlow';
 
-test.describe('Checkout: happy path (regression anchor)', () => {
-  test('TC-C1-04: a filled cart with valid details completes the order', async ({ page, checkoutCompletePage }) => {
+test.describe('Happy path', () => {
+  test('a valid order completes', async ({ page, checkoutCompletePage }) => {
     await beginCheckoutWithItem(page);
     await completeCheckout(page);
 

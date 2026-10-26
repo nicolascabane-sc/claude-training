@@ -2,9 +2,9 @@ import { test, expect } from '../fixtures';
 import { validCustomer } from '../../test-data/checkout';
 import { beginCheckoutWithEmptyCart, beginCheckoutWithItem, continueExpectingError } from '../helpers/checkoutFlow';
 
-test.describe('Decision table: checkout with empty or filled cart (risk C1)', () => {
-  test('TC-C1-01: an empty cart should not allow an order to be placed', async ({ page, checkoutStepOnePage, checkoutStepTwoPage }) => {
-    test.fail(true, 'Known defect C1: an order completes with an empty cart');
+test.describe('Empty or filled cart', () => {
+  test('an empty cart cannot be ordered', async ({ page, checkoutStepOnePage, checkoutStepTwoPage }) => {
+    test.fail(true, 'Known defect: an order completes with an empty cart');
 
     await beginCheckoutWithEmptyCart(page);
 
@@ -15,13 +15,13 @@ test.describe('Decision table: checkout with empty or filled cart (risk C1)', ()
     await expect(page).not.toHaveURL(/checkout-complete\.html/);
   });
 
-  test('TC-C1-02: an empty cart with an empty form shows required-field validation', async ({ page }) => {
+  test('empty cart and empty form shows an error', async ({ page }) => {
     await beginCheckoutWithEmptyCart(page);
 
     await continueExpectingError(page);
   });
 
-  test('TC-C1-03: a filled cart with an empty form shows required-field validation', async ({ page }) => {
+  test('filled cart and empty form shows an error', async ({ page }) => {
     await beginCheckoutWithItem(page);
 
     await continueExpectingError(page);

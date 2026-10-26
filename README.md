@@ -30,18 +30,18 @@ When upgrading `@playwright/test`, change the image tag in `.github/workflows/pl
 - `tests/fixtures.ts`: extends Playwright's `test` so specs get page objects as fixtures (`{ checkoutStepOnePage }`); import `test` and `expect` from here
 - `tests/helpers/checkoutFlow.ts`: shared login, cart and checkout steps
 - `tests/checkout/`: specs, grouped by risk and test design technique
-- `test-data/checkout.ts`: `validCustomer` and the data table for `data-driven.spec.ts` (S2, S5); each row is one test
+- `test-data/checkout.ts`: `validCustomer` and the data table for `data-driven.spec.ts`; each row is one test
 - `test-data/users.ts`: login credentials, read from `SAUCE_USERNAME` and `SAUCE_PASSWORD`
 
 ## Coverage by risk
 
 | Risk | Spec | Technique |
 |---|---|---|
-| C1: order with an empty cart | `happy-path.spec.ts`, `decision-table.spec.ts` | Regression anchor, decision table |
-| S2: zip code validation | `data-driven.spec.ts` | Equivalence partitioning, exploratory boundaries |
-| S5: name field validation | `data-driven.spec.ts` | Equivalence partitioning |
-| F2: resubmission after finish | `resubmission.spec.ts` | State transition |
+| Order with an empty cart | `happy-path.spec.ts`, `decision-table.spec.ts` | Regression anchor, decision table |
+| Zip code validation | `data-driven.spec.ts` | Equivalence partitioning, exploratory boundaries |
+| Name field validation | `data-driven.spec.ts` | Equivalence partitioning |
+| Ordering again after finish | `resubmission.spec.ts` | State transition |
 
-Known defects are marked with `test.fail` (currently TC-C1-01 and TC-F2-01): the test passes while the defect still exists.
+Known defects are marked with `test.fail` (currently "an empty cart cannot be ordered" and "browser Back cannot place a second order"): the test passes while the defect still exists.
 Pending cases are marked with `test.fixme`.
 Characterization tests record current behaviour where no rule has been specified.
