@@ -76,6 +76,13 @@ The site defines no zip length, so the one-digit and 500-character cases are exp
 
 The second defect also produces an empty order, because the cart is already emptied by the first one. Both are low severity for a demo site, but they would matter in a real shop.
 
+**Reading the results.** Both tests check the correct behaviour, so they fail while the defect exists. `test.fail` tells Playwright that this failure is expected:
+
+- The terminal shows them with ✘, but the summary counts them as passed (`15 passed`) and CI stays green.
+- They take about 5 seconds each, because they check that something does *not* happen, and Playwright waits its full 5-second timeout before deciding.
+- A ✘ on any other test is a real failure: the summary shows `failed` and CI turns red.
+- If one of these two turns red with `Expected to fail, but passed`, the site fixed the defect. Remove its `test.fail` line so it becomes a normal test.
+
 ## Project structure
 
 ```
