@@ -11,7 +11,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'list',
+  // list prints progress in the terminal; html writes the report that npm run report and CI use.
+  reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'https://www.saucedemo.com',
     // saucedemo marks elements with data-test, so getByTestId() targets that attribute.
