@@ -93,6 +93,7 @@ tests/checkout/           The specs, one per risk
 test-data/checkout.ts     validCustomer and the data-driven cases
 test-data/users.ts        Login credentials, read from environment variables
 .env.example              Template for the local .env file (git-ignored)
+.claude/skills/            Claude Code skills, e.g. pr-description for writing PR descriptions
 ```
 
 Page objects find elements through the site's `data-test` attributes with `getByTestId`. Specs import `test` and `expect` from `tests/fixtures.ts`, not from `@playwright/test`.
